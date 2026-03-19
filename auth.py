@@ -10,21 +10,22 @@ import dal_users
 
 # https://www.jwt.io/
 
-# SECRET_KEY = "change-this-secret-key"
-# ALGORITHM = "HS256"
-# ACCESS_TOKEN_EXPIRE_MINUTES = 60
+SECRET_KEY = "change-this-secret-key"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
-import os
-from dotenv import load_dotenv
-
-# Load variables from .env into the environment
-load_dotenv()
-
-# Access the variables
-SECRET_KEY = os.getenv("SECRET_KEY")
-ALGORITHM = os.getenv("ALGORITHM", "HS256")  # Default to HS256 if not set
-# Convert to int since env variables are always strings
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
+# THIS IS BETTER
+# import os
+# from dotenv import load_dotenv
+#
+# # Load variables from .env into the environment
+# load_dotenv()
+#
+# # Access the variables
+# SECRET_KEY = os.getenv("SECRET_KEY")
+# ALGORITHM = os.getenv("ALGORITHM", "HS256")  # Default to HS256 if not set
+# # Convert to int since env variables are always strings
+# ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
 bearer_scheme = HTTPBearer()
 
