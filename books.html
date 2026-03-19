@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>📚 Library Manager</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0b0b0e;
+  --surface: #13131a;
+  --surface2: #1a1a24;
+  --border: #2a2a3a;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --cream: #f0e6d0;
+  --muted: #5a5a70;
+  --muted2: #8a8aa0;
+  --danger: #e05050;
+  --danger-bg: #2a1010;
+  --success: #4ecb71;
+  --success-bg: #0d2a18;
+  --info: #5090e0;
+  --text: #dedad4;
+  --radius: 8px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: 13px;
+  min-height: 100vh; overflow-x: hidden;
+}
+
+/* BG */
+.bg-layer {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 5% 15%,  rgba(201,168,76,.08) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 70% at 95% 85%,  rgba(201,168,76,.05) 0%, transparent 65%);
+  animation: bgBreath 9s ease-in-out infinite alternate;
+}
+@keyframes bgBreath { from { opacity:.7; } to { opacity:1; } }
+
+/* Particles */
+.particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.p {
+  position: absolute; border-radius: 50%;
+  background: var(--gold); opacity: 0;
+  animation: rise linear infinite;
+}
+@keyframes rise {
+  0%   { transform: translateY(105vh); opacity: 0; }
+  8%   { opacity: .35; }
+  90%  { opacity: .12; }
+  100% { transform: translateY(-5vh) translateX(30px); opacity: 0; }
+}
+
+/* Header */
+header {
+  position: relative; z-index: 10;
+  padding: 3.5rem 2rem 2.5rem; text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+.eyebrow {
+  font-size: .6rem; letter-spacing: .55em; color: var(--gold); text-transform: uppercase;
+  margin-bottom: .9rem; opacity: 0; animation: fadeDown .7s .1s forwards;
+}
+h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(2.2rem, 5.5vw, 3.8rem);
+  background: linear-gradient(135deg, var(--cream) 0%, var(--gold2) 45%, var(--cream) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  opacity: 0; animation: fadeDown .7s .25s forwards;
+}
+.tagline {
+  font-size: .65rem; letter-spacing: .2em; color: var(--muted2);
+  margin-top: .55rem; opacity: 0; animation: fadeDown .7s .4s forwards;
+}
+.gold-line {
+  width: 60px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 1.5rem auto 0; opacity: 0; animation: fadeDown .7s .55s forwards;
+}
+@keyframes fadeDown { from { opacity:0; transform:translateY(-14px); } to { opacity:1; transform:translateY(0); } }
+
+main {
+  position: relative; z-index: 10;
+  max-width: 1260px; margin: 0 auto; padding: 2rem 1.5rem 4rem;
+}
+
+/* Toast */
+#toast {
+  position: fixed; top: 1.2rem; right: 1.2rem; z-index: 9999;
+  padding: .75rem 1.2rem; border-radius: var(--radius);
+  font-size: .72rem; letter-spacing: .03em;
+  display: flex; align-items: center; gap: .5rem;
+  box-shadow: 0 8px 30px rgba(0,0,0,.6);
+  transform: translateX(120%); opacity: 0;
+  transition: transform .35s cubic-bezier(.34,1.4,.64,1), opacity .35s;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(0); opacity: 1; }
+#toast.success { background: var(--success-bg); border: 1px solid var(--success); color: var(--success); }
+#toast.error   { background: var(--danger-bg);  border: 1px solid var(--danger);  color: var(--danger); }
+#toast.info    { background: #0d1a2a; border: 1px solid var(--info); color: var(--info); }
+
+/* Card */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: .75rem;
+  align-items: center; justify-content: space-between;
+  padding: 1.1rem 1.3rem; border-bottom: 1px solid var(--border);
+  background: var(--surface2);
+}
+.toolbar-left { display: flex; gap: .6rem; flex-wrap: wrap; align-items: center; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: .4rem;
+  padding: .5rem .9rem; border: 1px solid transparent; border-radius: 5px;
+  font-family: 'DM Mono', monospace; font-size: .7rem; letter-spacing: .04em;
+  cursor: pointer; transition: all .2s; white-space: nowrap;
+  position: relative; overflow: hidden;
+}
+.btn::after { content:''; position:absolute; inset:0; background:white; opacity:0; transition:opacity .15s; }
+.btn:hover::after { opacity:.05; }
+.btn:active { transform: scale(.97); }
+.btn-gold {
+  background: linear-gradient(135deg, #b8922e, var(--gold2));
+  color: #1a1200; border-color: var(--gold);
+  box-shadow: 0 2px 12px rgba(201,168,76,.25);
+}
+.btn-ghost  { background: transparent; color: var(--muted2); border-color: var(--border); }
+.btn-ghost:hover { color: var(--text); border-color: var(--muted2); }
+.btn-danger { background: var(--danger-bg); color: var(--danger); border-color: #5a2020; }
+.btn-danger:hover { border-color: var(--danger); }
+.btn-info   { background: #0d1a2a; color: var(--info); border-color: #1a3050; }
+.btn-info:hover { border-color: var(--info); }
+
+/* Search */
+.search-group { display: flex; gap: .4rem; align-items: center; }
+.search-group input {
+  width: 80px; padding: .48rem .7rem;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text);
+  font-family: 'DM Mono', monospace; font-size: .72rem; transition: border-color .2s;
+}
+.search-group input:focus { outline: none; border-color: var(--gold); }
+.search-group input::placeholder { color: var(--muted); }
+
+/* Table */
+.table-wrap { overflow-x: auto; min-height: 200px; }
+table { width: 100%; border-collapse: collapse; }
+thead tr { background: var(--surface2); border-bottom: 1px solid var(--border); }
+th {
+  padding: .75rem 1rem; font-size: .62rem; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--gold); font-weight: 500;
+  text-align: left; white-space: nowrap;
+}
+tbody tr {
+  border-bottom: 1px solid rgba(42,42,58,.6);
+  transition: background .18s; animation: rowIn .4s ease both;
+}
+@keyframes rowIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+tbody tr:hover { background: rgba(201,168,76,.04); }
+tbody tr.highlight { animation: flashRow .9s ease; }
+@keyframes flashRow { 0%,100%{background:transparent;} 35%{background:rgba(201,168,76,.13);} }
+td { padding: .7rem 1rem; font-size: .73rem; color: var(--text); vertical-align: middle; }
+td.id { color: var(--muted2); font-size: .65rem; }
+td.title-cell { font-family: 'Playfair Display', serif; font-size: .9rem; color: var(--cream); }
+td.price-cell { color: var(--gold2); }
+td.lang-cell span {
+  background: rgba(201,168,76,.1); border: 1px solid rgba(201,168,76,.2);
+  border-radius: 3px; padding: .15rem .45rem; font-size: .62rem; color: var(--gold);
+}
+td.actions { white-space: nowrap; }
+.action-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: .95rem; padding: .25rem .35rem; border-radius: 4px;
+  transition: all .18s; opacity: .6;
+}
+.action-btn:hover { opacity: 1; transform: scale(1.15); }
+.action-btn.edit:hover { background: rgba(80,144,224,.15); }
+.action-btn.del:hover  { background: rgba(224,80,80,.15); }
+
+.empty {
+  padding: 4rem 2rem; text-align: center; color: var(--muted); font-size: .75rem; letter-spacing: .05em;
+}
+.empty .icon { font-size: 2.5rem; display: block; margin-bottom: .8rem; opacity: .4; }
+.loading {
+  padding: 3rem; text-align: center; color: var(--muted2); font-size: .7rem; letter-spacing: .1em;
+}
+.spinner {
+  display: inline-block; width: 18px; height: 18px;
+  border: 2px solid var(--border); border-top-color: var(--gold);
+  border-radius: 50%; animation: spin .7s linear infinite; margin-bottom: .6rem;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal */
+.overlay {
+  position: fixed; inset: 0; z-index: 500;
+  background: rgba(0,0,0,.75); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none; transition: opacity .25s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; width: min(520px, 95vw);
+  box-shadow: 0 24px 80px rgba(0,0,0,.7);
+  transform: translateY(24px) scale(.97);
+  transition: transform .3s cubic-bezier(.34,1.2,.64,1);
+  overflow: hidden;
+}
+.overlay.open .modal { transform: translateY(0) scale(1); }
+.modal-header {
+  padding: 1.3rem 1.5rem; border-bottom: 1px solid var(--border);
+  background: var(--surface2); display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-family: 'Playfair Display', serif; font-size: 1.15rem; color: var(--cream); }
+.modal-close {
+  background: none; border: none; color: var(--muted2); font-size: 1.2rem;
+  cursor: pointer; padding: .2rem .4rem; border-radius: 4px; transition: color .2s; line-height: 1;
+}
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 1.5rem; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.form-group { display: flex; flex-direction: column; gap: .4rem; }
+.form-group.full { grid-column: 1 / -1; }
+label { font-size: .6rem; letter-spacing: .15em; text-transform: uppercase; color: var(--gold); font-weight: 500; }
+input[type=text], input[type=number] {
+  padding: .6rem .8rem; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 5px; color: var(--text); font-family: 'DM Mono', monospace; font-size: .78rem;
+  transition: border-color .2s, box-shadow .2s; width: 100%;
+}
+input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 2px rgba(201,168,76,.1); }
+input::placeholder { color: var(--muted); }
+.modal-footer {
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: .7rem;
+}
+
+/* Delete confirm */
+.confirm-body { padding: 2rem 1.5rem; text-align: center; }
+.confirm-body .warn-icon { font-size: 2.5rem; margin-bottom: .8rem; }
+.confirm-body p { font-size: .78rem; color: var(--muted2); line-height: 1.6; }
+.confirm-body .book-name { font-family: 'Playfair Display', serif; color: var(--cream); font-style: italic; }
+
+/* Stats */
+.stats {
+  display: flex; gap: 1.5rem; flex-wrap: wrap;
+  padding: .9rem 1.3rem; border-top: 1px solid var(--border); background: var(--surface2);
+}
+.stat { font-size: .62rem; color: var(--muted2); letter-spacing: .05em; }
+.stat span { color: var(--gold2); font-weight: 500; }
+
+@media (max-width: 640px) {
+  .form-grid { grid-template-columns: 1fr; }
+  .toolbar { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="particles" id="particles"></div>
+<div id="toast"></div>
+
+<header>
+  <div class="eyebrow">✦ Collection Manager ✦</div>
+  <h1>Library</h1>
+  <p class="tagline">Books &amp; REST API Dashboard</p>
+  <div class="gold-line"></div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="toolbar">
+      <div class="toolbar-left">
+        <button class="btn btn-gold" onclick="openCreate()">＋ Add Book</button>
+        <button class="btn btn-ghost" onclick="loadBooks()">↻ Refresh</button>
+        <div class="search-group">
+          <input type="number" id="searchId" placeholder="ID…" min="1"/>
+          <button class="btn btn-info" onclick="searchById()">🔍 </button>
+          <button class="btn btn-ghost" onclick="clearSearch()" title="Show all">✕</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-wrap" id="tableWrap">
+      <div class="loading"><div class="spinner"></div><br/>Loading books…</div>
+    </div>
+
+    <div class="stats" id="stats" style="display:none">
+      <div class="stat">Total: <span id="statCount">0</span></div>
+      <div class="stat">Avg price: <span id="statAvg">—</span></div>
+      <div class="stat">Languages: <span id="statLangs">—</span></div>
+    </div>
+  </div>
+</main>
+
+<!-- Form Modal -->
+<div class="overlay" id="formOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="formTitle">Add Book</span>
+      <button class="modal-close" onclick="closeForm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="bookId"/>
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Title *</label>
+          <input type="text" id="fTitle" placeholder="e.g. The Great Gatsby" maxlength="255"/>
+        </div>
+        <div class="form-group full">
+          <label>Author *</label>
+          <input type="text" id="fAuthor" placeholder="e.g. F. Scott Fitzgerald" maxlength="255"/>
+        </div>
+        <div class="form-group">
+          <label>Language</label>
+          <input type="text" id="fLanguage" placeholder="e.g. English" maxlength="100"/>
+        </div>
+        <div class="form-group">
+          <label>Price *</label>
+          <input type="number" id="fPrice" placeholder="0.00" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label>Published Year</label>
+          <input type="number" id="fYear" placeholder="e.g. 1925" min="0" max="9999"/>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeForm()">Cancel</button>
+      <button class="btn btn-gold" id="formSubmitBtn" onclick="submitForm()">Save Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="overlay" id="deleteOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title">Delete Book</span>
+      <button class="modal-close" onclick="closeDelete()">✕</button>
+    </div>
+    <div class="confirm-body">
+      <div class="warn-icon">🗑️</div>
+      <p>Permanently delete<br/><span class="book-name" id="deleteBookName"></span>?</p>
+      <p style="margin-top:.6rem;font-size:.68rem;">This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDelete()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = '/books';
+
+/* Particles */
+const pc = document.getElementById('particles');
+for (let i = 0; i < 22; i++) {
+  const p = document.createElement('div'); p.className = 'p';
+  const s = Math.random() * 3 + 1;
+  p.style.cssText = `left:${Math.random()*100}%;width:${s}px;height:${s}px;animation-duration:${10+Math.random()*20}s;animation-delay:${-Math.random()*20}s;`;
+  pc.appendChild(p);
+}
+
+/* Toast */
+let toastTimer;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  const icon = { success:'✓', error:'✕', info:'ℹ' }[type] || '';
+  el.textContent = icon + '  ' + msg;
+  el.className = 'show ' + type;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = type; }, 3200);
+}
+
+/* API */
+async function api(method, path, body) {
+  const opts = { method, headers: { 'Content-Type': 'application/json' } };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'HTTP ' + res.status);
+  }
+  return res.json();
+}
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Render */
+function renderTable(books, highlight) {
+  const wrap = document.getElementById('tableWrap');
+  if (!books.length) {
+    wrap.innerHTML = `<div class="empty"><span class="icon">📭</span>No books found.</div>`;
+    document.getElementById('stats').style.display = 'none'; return;
+  }
+  const rows = books.map((b, i) => `
+    <tr id="row-${b.id}" style="animation-delay:${i*.04}s">
+      <td class="id">${b.id}</td>
+      <td class="title-cell">${esc(b.title)}</td>
+      <td>${esc(b.author)}</td>
+      <td class="lang-cell">${b.language ? `<span>${esc(b.language)}</span>` : '<span style="opacity:.35">—</span>'}</td>
+      <td class="price-cell">$${Number(b.price).toFixed(2)}</td>
+      <td>${b.published_year ?? '—'}</td>
+      <td>${b.created_at ? (b.created_at.split('T')[0] || b.created_at.split(' ')[0]) : '—'}</td>
+      <td class="actions">
+        <button class="action-btn edit" title="Edit"   onclick="openEdit(${b.id})">✏️</button>
+        <button class="action-btn del"  title="Delete" onclick="openDelete(${b.id},'${esc(b.title)}')">🗑️</button>
+      </td>
+    </tr>`).join('');
+
+  wrap.innerHTML = `<table>
+    <thead><tr>
+      <th>ID</th><th>Title</th><th>Author</th>
+      <th>Language</th><th>Price</th><th>Year</th><th>Created</th><th></th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  const avg = (books.reduce((s,b) => s+b.price, 0) / books.length).toFixed(2);
+  const langs = [...new Set(books.map(b=>b.language).filter(Boolean))].join(', ') || '—';
+  document.getElementById('statCount').textContent = books.length;
+  document.getElementById('statAvg').textContent = '$' + avg;
+  document.getElementById('statLangs').textContent = langs;
+  document.getElementById('stats').style.display = 'flex';
+
+  if (highlight) setTimeout(() => {
+    const row = document.getElementById('row-' + highlight);
+    if (row) { row.classList.add('highlight'); row.scrollIntoView({ behavior:'smooth', block:'center' }); }
+  }, 60);
+}
+
+/* Load all */
+async function loadBooks() {
+  document.getElementById('tableWrap').innerHTML = `<div class="loading"><div class="spinner"></div><br/>Loading…</div>`;
+  try { renderTable(await api('GET', API)); }
+  catch(e) { toast(e.message, 'error'); }
+}
+
+/* Search by ID */
+async function searchById() {
+  const id = document.getElementById('searchId').value.trim();
+  if (!id) return loadBooks();
+  try {
+    const b = await api('GET', `${API}/${id}`);
+    renderTable([b], b.id);
+    toast(`Found: ${b.title}`, 'info');
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+function clearSearch() {
+  document.getElementById('searchId').value = '';
+  loadBooks();
+}
+
+/* Create */
+function openCreate() {
+  clearForm();
+  document.getElementById('formTitle').textContent = '✦ Add New Book';
+  document.getElementById('formSubmitBtn').textContent = 'Add Book';
+  document.getElementById('formOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('fTitle').focus(), 220);
+}
+
+/* Edit */
+async function openEdit(id) {
+  clearForm();
+  document.getElementById('formTitle').textContent = '✎ Edit Book';
+  document.getElementById('formSubmitBtn').textContent = 'Save Changes';
+  document.getElementById('formOverlay').classList.add('open');
+  try {
+    const b = await api('GET', `${API}/${id}`);
+    document.getElementById('bookId').value = b.id;
+    document.getElementById('fTitle').value = b.title;
+    document.getElementById('fAuthor').value = b.author;
+    document.getElementById('fLanguage').value = b.language ?? '';
+    document.getElementById('fPrice').value = b.price;
+    document.getElementById('fYear').value = b.published_year ?? '';
+  } catch(e) { toast(e.message, 'error'); closeForm(); }
+}
+
+function closeForm() { document.getElementById('formOverlay').classList.remove('open'); }
+function clearForm() {
+  ['bookId','fTitle','fAuthor','fLanguage','fPrice','fYear'].forEach(id => document.getElementById(id).value = '');
+}
+
+/* Submit */
+async function submitForm() {
+  const id     = document.getElementById('bookId').value;
+  const title  = document.getElementById('fTitle').value.trim();
+  const author = document.getElementById('fAuthor').value.trim();
+  const lang   = document.getElementById('fLanguage').value.trim() || null;
+  const price  = parseFloat(document.getElementById('fPrice').value);
+  const year   = parseInt(document.getElementById('fYear').value) || null;
+
+  if (!title)               return toast('Title is required', 'error');
+  if (!author)              return toast('Author is required', 'error');
+  if (isNaN(price)||price<0) return toast('Valid price required', 'error');
+
+  const btn = document.getElementById('formSubmitBtn');
+  btn.textContent = '…'; btn.disabled = true;
+  const body = { title, author, language: lang, price, published_year: year };
+
+  try {
+    if (id) {
+      const u = await api('PUT', `${API}/${id}`, body);
+      toast(`Updated "${u.title}"`, 'success');
+      closeForm(); await loadBooks();
+      setTimeout(() => { const r = document.getElementById('row-'+u.id); r && r.classList.add('highlight') && r.scrollIntoView({behavior:'smooth',block:'center'}); }, 100);
+    } else {
+      const c = await api('POST', API, body);
+      toast(`Added "${c.title}"`, 'success');
+      closeForm(); await loadBooks();
+      setTimeout(() => { const r = document.getElementById('row-'+c.id); r && r.classList.add('highlight') && r.scrollIntoView({behavior:'smooth',block:'center'}); }, 100);
+    }
+  } catch(e) { toast(e.message, 'error'); }
+  finally { btn.textContent = id ? 'Save Changes' : 'Add Book'; btn.disabled = false; }
+}
+
+/* Delete */
+let deleteTarget = null;
+function openDelete(id, title) {
+  deleteTarget = id;
+  document.getElementById('deleteBookName').textContent = `"${title}"`;
+  document.getElementById('deleteOverlay').classList.add('open');
+}
+function closeDelete() { deleteTarget = null; document.getElementById('deleteOverlay').classList.remove('open'); }
+async function confirmDelete() {
+  if (!deleteTarget) return;
+  try {
+    await api('DELETE', `${API}/${deleteTarget}`);
+    toast('Book deleted', 'success'); closeDelete(); loadBooks();
+  } catch(e) { toast(e.message, 'error'); }
+}
+
+/* Keyboard */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeForm(); closeDelete(); }
+  if (e.key === 'Enter') {
+    if (document.getElementById('formOverlay').classList.contains('open')) submitForm();
+    if (document.activeElement === document.getElementById('searchId')) searchById();
+  }
+});
+document.getElementById('formOverlay').addEventListener('click', e => { if (e.target.id==='formOverlay') closeForm(); });
+document.getElementById('deleteOverlay').addEventListener('click', e => { if (e.target.id==='deleteOverlay') closeDelete(); });
+
+/* Boot */
+loadBooks();
+</script>
+</body>
+</html>

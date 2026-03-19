@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel, Field, EmailStr
 
+from auth import create_access_token
 import dal_users
 
 
@@ -88,13 +89,24 @@ def delete_user(user_id: int):
     }
 
 
-@router.post("/login")
+@router.post("/auth/login")
 def login(login_data: LoginRequest):
     is_valid = dal_users.login_user(
         user_name=login_data.user_name,
         password=login_data.password
     )
-    return {"success": is_valid}
+
+    if not is_valid:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid username or password"
+        )
+
+    access_token = create_access_token(login_data.user_name)
+    return {
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 
 @router.delete("/users/tables/recreate")
